@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amigo eSIM Travel Data Calculator</title>
+  <meta name="description" content="A free interactive Amigo eSIM travel data planner with saved trip estimates and a 12% off CTA." />
+  <style>
+    :root{
+      --bg:#0f172a; --card:#1e293b; --line:#334155;
+      --text:#f1f5f9; --muted:#94a3b8; --accent:#38bdf8; --accent-2:#16a34a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; font-family:Arial,Helvetica,sans-serif;
+      background:radial-gradient(1200px 600px at 50% -10%,#1b2740,transparent),var(--bg);
+      color:var(--text); display:flex; flex-direction:column; align-items:center; padding:24px;
+    }
+    h1{font-size:clamp(24px,5vw,38px); margin:32px 0 4px; text-align:center}
+    .sub{color:var(--muted); margin:0 0 28px; text-align:center; max-width:620px; line-height:1.5}
+    .card{
+      background:var(--card); border:1px solid var(--line); border-radius:16px;
+      padding:28px; width:100%; max-width:460px;
+      box-shadow:0 20px 40px rgba(0,0,0,.35);
+    }
+    label{display:block; font-weight:700; margin:14px 0 8px}
+    input, select{
+      width:100%; padding:13px 14px; border-radius:10px; border:1px solid var(--line);
+      background:#0f1a2e; color:var(--text); font-size:15px;
+    }
+    .stats{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:22px 0}
+    .stat{background:#0f1a2e; border:1px solid var(--line); border-radius:12px; padding:16px 10px; text-align:center}
+    .stat .label{font-size:13px; color:var(--muted); margin-bottom:6px}
+    .stat .value{font-size:26px; font-weight:700}
+    button{
+      width:100%; padding:14px 20px; border:none; border-radius:10px; cursor:pointer;
+      font-size:16px; font-weight:700; color:#04210f; background:var(--accent-2);
+      transition:transform .05s ease, background .2s ease;
+    }
+    button:hover{background:#15803d}
+    button:active{transform:translateY(1px)}
+    .reset{margin-top:10px; background:transparent; color:var(--muted); font-weight:500; font-size:13px}
+    .reset:hover{background:transparent; color:var(--text)}
+    .tip{
+      margin-top:16px; padding:14px; border:1px solid var(--line); border-radius:12px;
+      background:#0f1a2e; color:var(--muted); line-height:1.45; font-size:14px;
+    }
+    .cta{
+      display:block; margin:18px auto 0; width:100%; max-width:460px; text-decoration:none;
+      background:var(--accent); color:#07111f; font-weight:700; text-align:center;
+      padding:14px 18px; border-radius:10px;
+    }
+    .cta:hover{filter:brightness(1.05)}
+    footer{color:var(--muted); font-size:12px; margin-top:28px; max-width:560px; text-align:center; line-height:1.5}
+  </style>
+</head>
+<body>
+  <h1>🌍 Amigo eSIM Travel Data Calculator</h1>
+  <p class="sub">Estimate how much travel data you need before you buy. Your destination, trip length, and usage style are saved in your browser.</p>
+
+  <div class="card">
+    <label for="destination">Destination or region</label>
+    <input id="destination" placeholder="France, Europe, World..." />
+
+    <label for="days">Trip length</label>
+    <input id="days" type="number" min="1" max="90" value="7" />
+
+    <label for="usage">Daily usage style</label>
+    <select id="usage">
+      <option value="0.3">Light: maps, WhatsApp, email</option>
+      <option value="0.8" selected>Standard: maps, browsing, socials</option>
+      <option value="1.5">Heavy: hotspot, video calls, uploads</option>
+      <option value="2.5">Power user: streaming and work travel</option>
+    </select>
+
+    <div class="stats">
+      <div class="stat"><div class="label">Estimated Data</div><div class="value" id="dataNeed">0GB</div></div>
+      <div class="stat"><div class="label">12% Coupon Saves</div><div class="value" id="saveEstimate">$0</div></div>
+    </div>
+
+    <button id="saveBtn">Save Trip Estimate</button>
+    <button class="reset" id="resetBtn">Reset planner</button>
+
+    <div class="tip" id="tipBox">Choose your usage style to get a plan suggestion.</div>
+  </div>
+
+  <a class="cta" href="https://tinyurl.com/z5wmzhtw" target="_blank" rel="noopener sponsored">
+    🎁 Get Amigo eSIM: 12% OFF with ESIMDUDE →
+  </a>
+
+  <footer>
+    Built for travelers comparing Amigo eSIM data plans. This page contains an affiliate link — we may earn a commission at no extra cost to you. Not affiliated with or endorsed by Amigo eSIM.
+  </footer>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const read = (key, fallback) => {
+      const value = localStorage.getItem(key);
+      return value === null ? fallback : value;
+    };
+
+    function estimatePlanCost(gb){
+      if (gb <= 1) return 6;
+      if (gb <= 6) return 13;
+      if (gb <= 12) return 20;
+      if (gb <= 18) return 26;
+      if (gb <= 30) return 44;
+      return 55;
+    }
+
+    function render(){
+      const destination = $("destination").value.trim() || "your trip";
+      const days = Math.max(1, parseInt($("days").value || "1", 10));
+      const dailyGb = parseFloat($("usage").value);
+      const totalGb = Math.ceil(days * dailyGb);
+      const estimatedCost = estimatePlanCost(totalGb);
+      const couponSaving = estimatedCost * 0.12;
+
+      $("dataNeed").innerText = totalGb + "GB";
+      $("saveEstimate").innerText = "$" + couponSaving.toFixed(2);
+
+      let suggestion = "For " + destination + ", estimate around " + totalGb + "GB for " + days + " day(s). ";
+      if (totalGb <= 1) suggestion += "A small 1GB plan may be enough for backup maps and messaging.";
+      else if (totalGb <= 6) suggestion += "A 6GB plan is a good fit for light travel and daily navigation.";
+      else if (totalGb <= 18) suggestion += "Look at mid-range plans around 12GB to 18GB for social apps, calls, and hotspot use.";
+      else suggestion += "Choose a larger regional or World plan if you will hotspot, work remotely, or visit multiple countries.";
+      $("tipBox").innerText = suggestion;
+    }
+
+    function savePlanner(){
+      localStorage.setItem("amigo_destination", $("destination").value);
+      localStorage.setItem("amigo_days", $("days").value);
+      localStorage.setItem("amigo_usage", $("usage").value);
+      render();
+      $("saveBtn").innerText = "Saved ✓";
+      setTimeout(() => $("saveBtn").innerText = "Save Trip Estimate", 900);
+    }
+
+    function resetPlanner(){
+      if (!confirm("Reset your Amigo eSIM planner?")) return;
+      localStorage.removeItem("amigo_destination");
+      localStorage.removeItem("amigo_days");
+      localStorage.removeItem("amigo_usage");
+      $("destination").value = "";
+      $("days").value = "7";
+      $("usage").value = "0.8";
+      render();
+    }
+
+    $("destination").value = read("amigo_destination", "");
+    $("days").value = read("amigo_days", "7");
+    $("usage").value = read("amigo_usage", "0.8");
+
+    $("destination").addEventListener("input", render);
+    $("days").addEventListener("input", render);
+    $("usage").addEventListener("change", render);
+    $("saveBtn").addEventListener("click", savePlanner);
+    $("resetBtn").addEventListener("click", resetPlanner);
+
+    render();
+  </script>
+</body>
+</html>
